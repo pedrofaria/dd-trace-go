@@ -17,6 +17,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gopkg.in/DataDog/dd-trace-go.v1/internal/globalconfig"
 	"gopkg.in/DataDog/dd-trace-go.v1/internal/log"
 )
 
@@ -65,8 +66,8 @@ func Middleware(opts ...Option) func(c *fiber.Ctx) error {
 		}
 		span.SetTag(ext.HTTPCode, strconv.Itoa(status))
 
-		if cfg.isStatusError(status) {
-			// mark 5xx server error
+		if cfg.isStatusError {
+			// check for server errors
 			span.SetTag(ext.Error, fmt.Errorf("%d: %s", status, http.StatusText(status)))
 		}
 		return err

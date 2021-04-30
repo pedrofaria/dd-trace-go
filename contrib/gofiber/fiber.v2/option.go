@@ -15,7 +15,8 @@ import (
 
 type config struct {
 	serviceName   string
-	isStatusError func(statusCode int) bool
+	statusCode    int
+	isStatusError bool
 	spanOpts      []ddtrace.StartSpanOption // additional span options to be applied
 	analyticsRate float64
 }
@@ -25,7 +26,7 @@ type Option func(*config)
 
 func defaults(cfg *config) {
 	cfg.serviceName = "fiber"
-	cfg.isStatusError = isServerError
+	cfg.isStatusError = globalconfig.IsHTTPServerError(cfg.statusCode)
 
 	if svc := globalconfig.ServiceName(); svc != "" {
 		cfg.serviceName = svc
@@ -76,12 +77,8 @@ func WithAnalyticsRate(rate float64) Option {
 }
 
 // WithStatusCheck allow setting of a function to tell whether a status code is an error
-func WithStatusCheck(fn func(statusCode int) bool) Option {
+func WithStatusCheck(b bool) Option {
 	return func(cfg *config) {
-		cfg.isStatusError = fn
+		cfg.isStatusError = b
 	}
-}
-
-func isServerError(statusCode int) bool {
-	return statusCode >= 500 && statusCode < 600
 }
